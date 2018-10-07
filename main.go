@@ -3,8 +3,11 @@ package main
 import (
 	"bytes"
 	"database/sql"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/korneliussamuel/go-sample-webserver/resource"
 
 	"github.com/korneliussamuel/go-sample-webserver/db"
 )
@@ -39,6 +42,12 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go bufferStorage.Write(body)
+
+	person := resource.Person{}
+	if err := json.Unmarshal(body, &person); err != nil {
+		panic(err)
+	}
+	go person.Save(DB)
 
 	successResponse(w, nil)
 }
