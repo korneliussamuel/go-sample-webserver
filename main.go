@@ -2,15 +2,21 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/korneliussamuel/go-sample-webserver/db"
 )
 
 var (
 	bufferStorage bytes.Buffer
+	DB            *sql.DB
 )
 
 func main() {
+	DB = db.Setup()
+
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":8080", nil)
 }
@@ -33,7 +39,6 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go bufferStorage.Write(body)
-	//TODO: save to DB
 
 	successResponse(w, nil)
 }
