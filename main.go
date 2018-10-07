@@ -4,8 +4,12 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
+
+	"github.com/korneliussamuel/go-sample-webserver/kit"
 
 	"github.com/korneliussamuel/go-sample-webserver/db"
 	"github.com/korneliussamuel/go-sample-webserver/resource"
@@ -21,6 +25,7 @@ func main() {
 	DB = db.Setup()
 
 	http.HandleFunc("/", handler)
+	http.HandleFunc("/{id:[0-9]+}", handler)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -53,9 +58,46 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getHandler(w http.ResponseWriter, r *http.Request) {
+	url := r.URL.Path
+	if hasDigit := regexp.MustCompile(`\d`).MatchString(url); hasDigit == false {
+		responder.FailureResponse(w, http.StatusBadRequest)
+		return
+	}
 
+	id := kit.GetIDFrom(url)
+
+	person := getPersonFromBufferBy(id)
+	if person != nil {
+		responder.SuccessResponse(w, bufferStorage.Bytes())
+		return
+	}
+
+	person = resource.FindPersonByID(DB, id)
+	if person != nil {
+		responder.SuccessResponse(w, kit.ToBytes(person))
+		return
+	}
+
+	msg := fmt.Sprintf("data for user id %s does not exist", id)
+	errMsg := resource.ErrMsg{msg}
+	responder.SuccessResponse(w, kit.ToBytes(errMsg))
 }
 
 func defaultHandler(w http.ResponseWriter, r *http.Request) {
 	responder.FailureResponse(w, http.StatusBadRequest)
+}
+
+func getPersonFromBufferBy(id string) *resource.Person {
+	if bufferStorage.Len() != 0 {
+		person := resource.Person{}
+		json.Unmarshal(bufferStorage.Bytes(), person)
+
+		if person.Id != id {
+			return nil
+		}
+
+		return &person
+	}
+
+	return nil
 }
