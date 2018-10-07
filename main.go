@@ -57,4 +57,5 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func defaultHandler(w http.ResponseWriter, r *http.Request) {
+	responder.FailureResponse(w, http.StatusBadRequest)
 }
