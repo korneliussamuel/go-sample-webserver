@@ -7,9 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/korneliussamuel/go-sample-webserver/resource"
-
 	"github.com/korneliussamuel/go-sample-webserver/db"
+	"github.com/korneliussamuel/go-sample-webserver/resource"
+	"github.com/korneliussamuel/go-sample-webserver/responder"
 )
 
 var (
@@ -49,7 +49,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	go person.Save(DB)
 
-	successResponse(w, nil)
+	responder.SuccessResponse(w, nil)
 }
 
 func getHandler(w http.ResponseWriter, r *http.Request) {
@@ -57,10 +57,4 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func defaultHandler(w http.ResponseWriter, r *http.Request) {
-}
-
-func successResponse(w http.ResponseWriter, resp []byte) {
-	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
-	return
 }
